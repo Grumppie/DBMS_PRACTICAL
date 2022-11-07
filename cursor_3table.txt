@@ -1,0 +1,56 @@
+SET SERVEROUT ON
+
+CREATE TABLE o_rollcall(id NUMBER,  name VARCHAR2(25), age NUMBER);
+CREATE TABLE n_rollcall(id NUMBER,  name VARCHAR2(25), age NUMBER);
+CREATE TABLE t_rollcall(id NUMBER, name VARCHAR2(25),age NUMBER);
+INSERT INTO o_rollcall VALUES(45,'ASHUTOSH',20);
+INSERT INTO o_rollcall VALUES(45,'ASHUTOSH',20);
+INSERT INTO o_rollcall VALUES(40,'ASHU',21);
+INSERT INTO n_rollcall VALUES(46,'ARYAN',22);
+INSERT INTO n_rollcall VALUES(46,'ARYAN',22); 
+INSERT INTO n_rollcall VALUES(49,'SARTHAK',20);
+
+CREATE OR REPLACE PROCEDURE cursor_mock1 is
+c_i NUMBER;
+c_n VARCHAR2(25);
+c_a NUMBER;
+cursor c1 (id NUMBER , n VARCHAR2 , a NUMBER) IS SELECT id , COUNT (id),name ,COUNT (name), age, COUNT (age) FROM o_rollcall GROUP BY id,name,age HAVING (COUNT(id)>1) AND (COUNT(name)>1) AND (COUNT(age)>1) ;
+temp  c1%rowtype;
+BEGIN
+	INSERT INTO t_rollcall SELECT * FROM o_rollcall;
+	OPEN c1(c_i,c_n,c_a);
+	LOOP
+		FETCH c1 INTO temp;
+		EXIT WHEN c1%NOTFOUND;
+		DELETE FROM t_rollcall WHERE id = temp.id AND name = temp.name AND age = temp.age;
+		INSERT INTO t_rollcall VALUES (temp.id,temp.name,temp.age);
+		dbms_output.put_line(temp.id||temp.name||temp.age);
+	END LOOP;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE cursor_mock2 is
+c_i NUMBER;
+c_n VARCHAR2(25);
+c_a NUMBER;
+cursor c1 (id NUMBER , n VARCHAR2 , a NUMBER) IS SELECT id , COUNT (id),name ,COUNT (name), age, COUNT (age) FROM n_rollcall GROUP BY id,name,age HAVING (COUNT(id)>1) AND (COUNT(name)>1) AND (COUNT(age)>1) ;
+temp  c1%rowtype;
+BEGIN
+	INSERT INTO t_rollcall SELECT * FROM n_rollcall;
+	OPEN c1(c_i,c_n,c_a);
+	LOOP
+		FETCH c1 INTO temp;
+		EXIT WHEN c1%NOTFOUND;
+		DELETE FROM t_rollcall WHERE id = temp.id AND name = temp.name AND age = temp.age;
+		INSERT INTO t_rollcall VALUES (temp.id,temp.name,temp.age);
+		dbms_output.put_line(temp.id||temp.name||temp.age);
+	END LOOP;
+END;
+/
+
+BEGIN
+	cursor_mock1;
+	cursor_mock2;
+END;
+
+/
